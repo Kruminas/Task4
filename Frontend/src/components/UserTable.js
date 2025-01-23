@@ -7,9 +7,12 @@ const UserTable = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Use the backend URL from the environment variable
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
   useEffect(() => {
     setLoading(true);
-    axios.get('/api/users', { withCredentials: true })
+    axios.get(`${backendUrl}/api/users`, { withCredentials: true })
       .then(response => {
         setUsers(response.data);
         setLoading(false);
@@ -18,7 +21,7 @@ const UserTable = () => {
         console.error('Error fetching users:', error);
         setLoading(false);
       });
-  }, []);
+  }, [backendUrl]);  // Add backendUrl as dependency to handle changes.
 
   const handleCheckboxChange = (event, userId) => {
     if (event.target.checked) {
@@ -37,7 +40,7 @@ const UserTable = () => {
   };
 
   const handleBlock = () => {
-    axios.post('http://localhost:5000/api/block', { userIds: selectedUsers })
+    axios.post(`${backendUrl}/api/block`, { userIds: selectedUsers })
       .then(() => {
         setUsers(users.map(user => 
           selectedUsers.includes(user._id) 
@@ -52,7 +55,7 @@ const UserTable = () => {
   };
   
   const handleUnblock = () => {
-    axios.post('http://localhost:5000/api/unblock', { userIds: selectedUsers })
+    axios.post(`${backendUrl}/api/unblock`, { userIds: selectedUsers })
       .then(() => {
         setUsers(users.map(user => 
           selectedUsers.includes(user._id) 
@@ -67,7 +70,7 @@ const UserTable = () => {
   };
 
   const handleDelete = () => {
-    axios.post('http://localhost:5000/api/users/delete', { userIds: selectedUsers })
+    axios.post(`${backendUrl}/api/users/delete`, { userIds: selectedUsers })
       .then(() => {
         setUsers(users.filter(user => !selectedUsers.includes(user._id)));
         setSelectedUsers([]);

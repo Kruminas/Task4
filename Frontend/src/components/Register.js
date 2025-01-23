@@ -9,12 +9,14 @@ const Register = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;  // Use the environment variable
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/register', { name, email, password });
+      const response = await axios.post(`${backendUrl}/api/register`, { name, email, password });
       setMessage(response.data.message);
       setName('');
       setEmail('');

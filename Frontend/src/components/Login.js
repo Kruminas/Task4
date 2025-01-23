@@ -9,14 +9,17 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // Fetch backend URL from environment variable
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/login",
+        `${backendUrl}/api/login`, // Use the backend URL dynamically
         { email, password },
-        { withCredentials: true }
+        { withCredentials: true } // For cookies if needed
       );
 
       console.log("Login response:", response.data);
@@ -59,26 +62,26 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-                <span className="input-group-text">
-                  <i className="bi bi-envelope"></i>
-                </span>
+              <span className="input-group-text">
+                <i className="bi bi-envelope"></i>
+              </span>
             </div>
           </div>
           <div className="form-group">
             <label>Password:</label>
             <div className="input-group">
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Enter your password"
-              style={{ fontSize: "1rem" }}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <span className="input-group-text">
-            <i class="bi bi-eye"></i>
-                </span>
+              <input
+                type="password"
+                className="form-control"
+                placeholder="Enter your password"
+                style={{ fontSize: "1rem" }}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <span className="input-group-text">
+                <i className="bi bi-eye"></i>
+              </span>
             </div>
           </div>
           <button
@@ -89,7 +92,7 @@ const Login = () => {
               backgroundColor: "#007bff",
               width: "100%",
               fontSize: "1.25rem",
-              padding: "10px 0"
+              padding: "10px 0",
             }}
           >
             Sign In

@@ -17,7 +17,7 @@ app.use(express.json());
 
 // CORS configuration
 app.use(cors({
-  origin: 'https://task4-six-vert.vercel.app/', // Change to your frontend URL for Heroku
+  origin: 'https://task4-six-vert.vercel.app', // Replace with your actual frontend URL
   credentials: true,
 }));
 
@@ -32,7 +32,10 @@ app.use(
       mongoUrl: process.env.MONGO_URI,
       collectionName: 'sessions',
     }),
-    cookie: { secure: false }, // Use secure: true for HTTPS
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', // true if in production
+      httpOnly: true,
+      sameSite: 'strict' }, // Use secure: true for HTTPS
   })
 );
 
@@ -146,14 +149,6 @@ app.post('/api/unblock', async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error unblocking users' });
   }
-});
-
-// Serve static files from the React frontend
-app.use(express.static(path.join(__dirname, "../Frontend/build")));
-
-// Catch-all route for React's client-side routing (for single-page apps)
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../Frontend/build", "index.html"));
 });
 
 // Start the server

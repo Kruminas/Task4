@@ -213,7 +213,7 @@ function UserManagement() {
               </th>
               <th>Name</th>
               <th>
-                Email <i class="bi bi-arrow-down"></i>
+                Email <i className="bi bi-arrow-down"></i>
               </th>
               <th>Last Seen</th>
             </tr>
