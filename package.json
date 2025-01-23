@@ -21,7 +21,7 @@
       "react-scripts": "5.0.1"
     },
     "scripts": {
-  "heroku-postbuild": "npm run build --prefix frontend",
+  "heroku-postbuild": "npm run build --prefix Frontend",
   "start": "react-scripts start",
   "build": "react-scripts build",
   "test": "react-scripts test",
