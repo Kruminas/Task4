@@ -17,7 +17,7 @@ app.use(express.json());
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:3000', // Change to your frontend URL for Heroku
+  origin: 'https://task4-six-vert.vercel.app/', // Change to your frontend URL for Heroku
   credentials: true,
 }));
 
