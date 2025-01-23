@@ -5,21 +5,24 @@ const cors = require("cors");
 const session = require("express-session");
 const dotenv = require("dotenv");
 const User = require("./models/user");
+const path = require("path");
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-
+// Middleware to parse JSON requests
 app.use(express.json());
+
+// CORS configuration
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'http://localhost:3000', // Change to your frontend URL for Heroku
   credentials: true,
 }));
 
+// Session store with MongoDB
 const MongoStore = require('connect-mongo');
-
 app.use(
   session({
     secret: 'your-session-secret',
@@ -29,14 +32,18 @@ app.use(
       mongoUrl: process.env.MONGO_URI,
       collectionName: 'sessions',
     }),
-    cookie: { secure: false },
+    cookie: { secure: false }, // Use secure: true for HTTPS
   })
 );
 
+// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
+// Routes
+
+// Register Route
 app.post("/api/register", async (req, res) => {
   const { name, email, password } = req.body;
   try {
@@ -79,9 +86,7 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-
-
-
+// Middleware to check if the user is logged in
 const checkSession = (req, res, next) => {
   if (!req.session.userId) {
     return res.status(403).json({ message: "You must be logged in" });
@@ -89,6 +94,7 @@ const checkSession = (req, res, next) => {
   next();
 };
 
+// Get Users (Protected Route)
 app.get("/api/users", checkSession, async (req, res) => {
   try {
     const users = await User.find();
@@ -98,12 +104,14 @@ app.get("/api/users", checkSession, async (req, res) => {
   }
 });
 
+// Logout Route - Destroys session
 app.post("/api/logout", (req, res) => {
   req.session.destroy(() => {
     res.status(200).json({ message: "Logged out successfully" });
   });
 });
 
+// Delete Users Route
 app.post('/api/users/delete', async (req, res) => {
   try {
     const { userIds } = req.body;
@@ -118,18 +126,18 @@ app.post('/api/users/delete', async (req, res) => {
   }
 });
 
+// Block Users Route
 app.post('/api/block', async (req, res) => {
   const { userIds } = req.body;
-  console.log("User IDs to block:", userIds);
   try {
     await User.updateMany({ _id: { $in: userIds } }, { blocked: true });
     res.status(200).json({ message: 'Users blocked successfully' });
   } catch (error) {
-    console.error("Error blocking users:", error);
     res.status(500).json({ message: 'Error blocking users' });
   }
 });
 
+// Unblock Users Route
 app.post('/api/unblock', async (req, res) => {
   const { userIds } = req.body;
   try {
@@ -140,14 +148,15 @@ app.post('/api/unblock', async (req, res) => {
   }
 });
 
-const path = require("path");
-
+// Serve static files from the React frontend
 app.use(express.static(path.join(__dirname, "../Frontend/build")));
 
+// Catch-all route for React's client-side routing (for single-page apps)
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../Frontend/build", "index.html"));
 });
 
+// Start the server
 app.listen(port, () => {
-  console.log("Server is running on port ${port}");
+  console.log(`Server is running on port ${port}`);
 });
