@@ -9,26 +9,16 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Fetch backend URL from environment variable
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const response = await axios.post(
-        `${backendUrl}/api/login`, // Use the backend URL dynamically
+      await axios.post(
+        `${backendUrl}/api/login`,
         { email, password },
-        { withCredentials: true } // For cookies if needed
+        { withCredentials: true }
       );
-
-      console.log("Login response:", response.data);
-
-      if (response.data.lastLogin) {
-        console.log("User last login time:", new Date(response.data.lastLogin));
-      }
-
-      localStorage.setItem("token", response.data.token);
       navigate("/user-management");
     } catch (error) {
       console.error(

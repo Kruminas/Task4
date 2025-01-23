@@ -1,134 +1,112 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
-const UserTable = () => {
+const ManageUsers = () => {
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Use the backend URL from the environment variable
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/users`, {
+        withCredentials: true,
+      });
+      setUsers(response.data);
+    } catch (err) {
+      setError("Error fetching users");
+    }
+  };
+
   useEffect(() => {
-    setLoading(true);
-    axios.get(`${backendUrl}/api/users`, { withCredentials: true })
-      .then(response => {
-        setUsers(response.data);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching users:', error);
-        setLoading(false);
-      });
-  }, [backendUrl]);  // Add backendUrl as dependency to handle changes.
+    fetchUsers();
+  }, []);
 
-  const handleCheckboxChange = (event, userId) => {
-    if (event.target.checked) {
+  const handleSelectUser = (userId) => {
+    if (selectedUsers.includes(userId)) {
+      setSelectedUsers(selectedUsers.filter((id) => id !== userId));
+    } else {
       setSelectedUsers([...selectedUsers, userId]);
-    } else {
-      setSelectedUsers(selectedUsers.filter(id => id !== userId));
     }
   };
 
-  const handleSelectAll = (event) => {
-    if (event.target.checked) {
-      setSelectedUsers(users.map(user => user._id));
-    } else {
-      setSelectedUsers([]);
+  const handleBlockUsers = async () => {
+    try {
+      await axios.post(
+        `${backendUrl}/api/block`,
+        { userIds: selectedUsers },
+        { withCredentials: true }
+      );
+      fetchUsers();
+    } catch (err) {
+      setError("Error blocking users");
     }
   };
 
-  const handleBlock = () => {
-    axios.post(`${backendUrl}/api/block`, { userIds: selectedUsers })
-      .then(() => {
-        setUsers(users.map(user => 
-          selectedUsers.includes(user._id) 
-            ? { ...user, blocked: true } 
-            : user
-        ));
-        setSelectedUsers([]);
-      })
-      .catch(error => {
-        console.error('Error blocking users:', error);
-      });
-  };
-  
-  const handleUnblock = () => {
-    axios.post(`${backendUrl}/api/unblock`, { userIds: selectedUsers })
-      .then(() => {
-        setUsers(users.map(user => 
-          selectedUsers.includes(user._id) 
-            ? { ...user, blocked: false } 
-            : user
-        ));
-        setSelectedUsers([]);
-      })
-      .catch(error => {
-        console.error('Error unblocking users:', error);
-      });
+  const handleUnblockUsers = async () => {
+    try {
+      await axios.post(
+        `${backendUrl}/api/unblock`,
+        { userIds: selectedUsers },
+        { withCredentials: true }
+      );
+      fetchUsers();
+    } catch (err) {
+      setError("Error unblocking users");
+    }
   };
 
-  const handleDelete = () => {
-    axios.post(`${backendUrl}/api/users/delete`, { userIds: selectedUsers })
-      .then(() => {
-        setUsers(users.filter(user => !selectedUsers.includes(user._id)));
-        setSelectedUsers([]);
-      })
-      .catch(error => {
-        console.error('Error deleting users:', error);
-      });
+  const handleDeleteUsers = async () => {
+    try {
+      await axios.post(
+        `${backendUrl}/api/users/delete`,
+        { userIds: selectedUsers },
+        { withCredentials: true }
+      );
+      fetchUsers();
+    } catch (err) {
+      setError("Error deleting users");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        `${backendUrl}/api/logout`,
+        {},
+        { withCredentials: true }
+      );
+      window.location.href = "/login";
+    } catch (err) {
+      setError("Error logging out");
+    }
   };
 
   return (
-    <div className="container mt-5">
-      <h2>User Management</h2>
-      <div className="toolbar mb-3">
-        <button className="btn btn-danger mr-2" onClick={handleBlock} disabled={selectedUsers.length === 0}>
-          Block
-        </button>
-        <button className="btn btn-success mr-2" onClick={handleUnblock} disabled={selectedUsers.length === 0}>
-          Unblock
-        </button>
-        <button className="btn btn-danger" onClick={handleDelete} disabled={selectedUsers.length === 0}>
-          Delete
-        </button>
-      </div>
-      {loading ? (
-        <div>Loading users...</div>
-      ) : (
-        <table className="table table-striped table-hover">
-          <thead className="thead-dark">
-            <tr>
-              <th>
-                <input type="checkbox" onChange={handleSelectAll} />
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(user => (
-              <tr key={user._id}>
-                <td>
-                  <input
-                    type="checkbox"
-                    onChange={(e) => handleCheckboxChange(e, user._id)}
-                    checked={selectedUsers.includes(user._id)}
-                  />
-                </td>
-                <td>
-                  <div>{user.name}</div>
-                  {user.blocked && <div className="small text-danger">Blocked</div>}
-                </td>
-                <td>{user.email}</td>
-                <td>{user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'N/A'}</td>
-                <td>{user.blocked ? "Blocked" : "Active"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+    <div>
+      <h1>Manage Users</h1>
+      {error && <p>{error}</p>}
+      <button onClick={handleBlockUsers}>Block Selected</button>
+      <button onClick={handleUnblockUsers}>Unblock Selected</button>
+      <button onClick={handleDeleteUsers}>Delete Selected</button>
+      <button onClick={handleLogout}>Logout</button>
+      <ul>
+        {users.map((user) => (
+          <li key={user._id}>
+            <label>
+              <input
+                type="checkbox"
+                checked={selectedUsers.includes(user._id)}
+                onChange={() => handleSelectUser(user._id)}
+              />
+              {user.name} ({user.email}) {user.blocked ? "Blocked" : "Active"}
+            </label>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
 
-export default UserTable;
+export default ManageUsers;
